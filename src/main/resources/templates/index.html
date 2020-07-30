@@ -1,0 +1,117 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Billable Hour App</title>
+    <script th:src="@{js/jquery.min.js}"></script>
+    <script th:src="@{js/bootstrap.min.js}"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <link th:href="@{css/footer.css}" rel="stylesheet" />
+    <script th:src="@{js/main.js}"></script>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark justify-content-between">
+    <a class="navbar-brand">Billable Hour App</a>
+
+    <form class="form-inline projectForm" method="get" th:action="@{/company/invoices}">
+        <select class="form-control mr-sm-2 projectName">
+            <option th:each="project : ${projects}" th:value="${project.name}" th:text="${project.name}">
+        </select>
+        <button class="btn btn-outline-success my-2 my-sm-0 invoiceBtn" type="submit">Generate Company Invoice</button>
+    </form>
+</nav>
+
+<!-- Begin page content -->
+<main role="main" class="container">
+    <h1 class="mt-5">Billable Hour App.</h1>
+
+    <form class="timesheetForm">
+        <span style="color:red">The end week date will automatically updated when you select start date.</span>
+        <div class="form-row align-items-center">
+            <div class="col-auto">
+                <select class="form-control mr-sm-2 empname">
+                    <option th:each="employee : ${employees}" th:value="${employee.employeeId}" th:text="${employee.name}">
+                    </option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="sr-only" for="inlineFormInput">From:</label>
+                <input type="date" class="form-control mb-2 fromdate" id="inlineFormInput" placeholder="From date" th:value="${today}">
+            </div>
+            <div class="col-auto">
+                <label class="sr-only" for="inlineFormInputGroup">To</label>
+                <div class="input-group mb-2">
+                    <input type="text" disabled class="form-control todate" id="inlineFormInputGroup" placeholder="To date" th:value="${weekdate}">
+                </div>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-success my-2 my-sm-0 genEmpTimesheet" type="submit" >Generate Employee Weekly Timesheet</button>
+            </div>
+        </div>
+    </form>
+
+
+
+    <p>
+        There are default dataset loaded on upon starting the application. this is intentional however, you can upload more employee timesheets via
+        this post request to:  <a href="localhost:8080/billablehour/v1/timesheets">localhost:8080/billablehour/v1/timesheets</a>
+    </p>
+    <span id="message" style="font-weight:bold"></span>
+    <div id="tableCompany">
+        <h4 style="color:green">Company invoice for : <span id="company"></span></h4>
+        <span>Total invoice found: <span id="totalInvoice"></span></span>
+        <table class="table table-striped" id="companyDataTable">
+            <thead class="thead-dark">
+            <tr>
+                <th>Employee ID</th>
+                <th>Number of hours</th>
+                <th>Unit price</th>
+                <th>Cost</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+    </div>
+
+    <div id="employeeTimesheet">
+        <h4 style="color:green">Timesheets for : <span id="employee"></span></h4>
+        <span>Total timesheet found: <span id="totalTimesheet"></span></span>
+        <table class="table table-striped" id="employeeTimesheetTable">
+            <thead class="thead-dark">
+            <tr>
+                <th>Employee ID</th>
+                <th>Billable Rate <br/>(per hour)</th>
+                <th>Project</th>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Hours<br /> worked</th>
+                <th>Total</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+    </div>
+
+
+
+
+
+
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <span class="text-muted">Powered by TecHustle Inc</span>
+    </div>
+</footer>
+
+</body>
+</html>
