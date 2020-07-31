@@ -2,12 +2,13 @@ package com.techustle.billablehour.v1.backend.resource
 
 import com.techustle.billablehour.v1.backend.utility.Utils
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
 
 class TimesheetResource{
     var employeeId:Int = 0
-    var amount:Double = 0.0
+    var amount:BigDecimal? = null
     var project:String = ""
     var date:Date = Date()
     var startTime:Date = Date()
@@ -15,8 +16,8 @@ class TimesheetResource{
     var hourWorked:Int = 0
     var href: TimesheetLinkResource = TimesheetLinkResource()
 
-    @Autowired
-    lateinit var utils: Utils
+
+    var utils = Utils()
 
     fun setStarttime(start_time: String) {
         this.startTime = utils.formatTime(start_time)

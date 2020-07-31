@@ -9,10 +9,11 @@ import com.techustle.billablehour.v1.backend.repository.EmployeeRepository
 import com.techustle.billablehour.v1.backend.repository.JobRepository
 import com.techustle.billablehour.v1.backend.repository.ProjectRepository
 import com.techustle.billablehour.v1.backend.resource.*
-import org.aspectj.util.LangUtil
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException
 import org.springframework.stereotype.Service
 import java.util.*
+import java.util.function.Supplier
 
 @Service
 class TimesheetService {
@@ -31,7 +32,7 @@ class TimesheetService {
      * @return Timesheet object
      * This function below handle timesheet engine from the employee creation, bill management, project and job
      */
-    fun addNewTimesheets(timesheetResource: TimesheetResource): Unit {
+    fun addNewTimesheets(timesheetResource: TimesheetResource): Int {
 
         //employee management
         var employee : Employee = saveEmployee(timesheetResource)
@@ -40,9 +41,7 @@ class TimesheetService {
         var project :Project = saveProject(timesheetResource.project)
 
         //job management
-        saveJob(employee, project, timesheetResource)
-
-        saveJob(employee, project, timesheetResource)
+        return saveJob(employee, project, timesheetResource)
 
     }
 
@@ -54,7 +53,7 @@ class TimesheetService {
      * the system will create the job for this employee(lawyer) nicely
      */
     fun saveJob(employee: Employee, project: Project, timesheetResource: TimesheetResource) : Int {
-        var job:Job = Job()
+        var job = Job()
         job.employee = employee
         job.project = project
         job.startTime = timesheetResource.startTime
@@ -65,7 +64,7 @@ class TimesheetService {
 
         timesheetResource.href.link = "/billablehour/v1/timesheets/${job.Id}"
 
-        return job.Id;
+        return 1;
     }
 
     /**
@@ -104,7 +103,7 @@ class TimesheetService {
             employee1.name = "name${timesheetResource.employeeId}"
             employee1 = employeeRepository.save(employee1)
 
-            var bill :Bill = saveBill(timesheetResource, employee1)
+            var bill = saveBill(timesheetResource, employee1)
             //update employee bill
             employee1.bill = bill
             employeeRepository.save(employee1)
@@ -137,7 +136,7 @@ class TimesheetService {
     fun getWeeklyTimesheetForEmployee(employeeTimesheetRequest: EmployeeTimesheetRequest) : TimesheetDataResource {
         var employee: Employee? = employeeRepository.findEmployeeByEmployeeId(employeeTimesheetRequest.employeeId)
         val timesheetList = mutableListOf<IncommingTimesheetResource>()
-        var timesheetDataResource: TimesheetDataResource = TimesheetDataResource()
+        var timesheetDataResource = TimesheetDataResource()
         if(employee != null) {
             var jobs:List<Job> =  jobRepository.findJobBetweenCreatedDate(employee,
                     employeeTimesheetRequest.from, employeeTimesheetRequest.to)
@@ -156,38 +155,40 @@ class TimesheetService {
     }
 
     private fun getTimesheet(jobId: Int) : IncommingTimesheetResource {
-        var job: Optional<Job> =  jobRepository.findById(jobId);
+        var job: Job? = jobRepository.findById(jobId)
+                .orElseThrow(Supplier { InvalidConfigurationPropertyValueException("JobID", jobId, "Timesheet not found with ID: $jobId") })
         var incommingTimesheet: IncommingTimesheetResource = IncommingTimesheetResource()
-        if(job.isPresent) {
-            incommingTimesheet.endTime = job.get().endTime.toString()
-            incommingTimesheet.startTime = job.get().startTime.toString()
-            incommingTimesheet.employeeId = job.get().employee.employeeId
-            incommingTimesheet.project = job.get().project.name
-            var amount = job.get().employee.bill?.amount
-            var totalAmount = amount?.times(job.get().hour)
+        if(job != null) {
+            incommingTimesheet.endTime = job.endTime.toString()
+            incommingTimesheet.startTime = job.startTime.toString()
+            incommingTimesheet.employeeId = job.employee.employeeId
+            incommingTimesheet.project = job.project.name
+            var amount = job.employee.bill?.amount
+            var hour = job.hour.toBigDecimal()
+            var totalAmount = amount?.times(hour)
             incommingTimesheet.total = String.format("%.2f", totalAmount)
             incommingTimesheet.rate = amount.toString()
-            incommingTimesheet.date = job.get().created
-            incommingTimesheet.hourWorked = job.get().hour
-            incommingTimesheet.href.link = "billablehour/v1/timesheets/${job.get().Id}"
+            incommingTimesheet.date = job.created
+            incommingTimesheet.hourWorked = job.hour
+            incommingTimesheet.href.link = "billablehour/v1/timesheets/${job.Id}"
         }
         return incommingTimesheet
     }
 
     fun getCompanyInvoice(company: String): CompanyInvoiceDataResource {
         var project:Project? = projectRepository.findProjectByName(company)
-        var companyInvoiceDataResource : CompanyInvoiceDataResource = CompanyInvoiceDataResource()
+        var companyInvoiceDataResource  = CompanyInvoiceDataResource()
         if(project != null) {
             var count:Int = 0
             var jobs: List<Job> = jobRepository.findJobByProject(project)
             for(job in jobs) {
                 count += 1
-                var companyInvoice: CompanyInvoiceResource = CompanyInvoiceResource()
+                var companyInvoice = CompanyInvoiceResource()
                 companyInvoice.employeeId = job.employee.employeeId
                 companyInvoice.numberOfHours = job.hour
-                var unitCost : Double? = job.employee.bill?.amount
+                var unitCost  = job.employee.bill?.amount
                 companyInvoice.unitPrice = unitCost.toString()
-                var total = job.hour * unitCost!!
+                var total = job.hour.toBigDecimal() * unitCost!!
                 companyInvoice.cost = total.toString()
                 companyInvoiceDataResource.data.add(companyInvoice)
             }

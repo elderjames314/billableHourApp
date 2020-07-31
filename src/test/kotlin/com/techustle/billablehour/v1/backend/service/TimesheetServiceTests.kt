@@ -39,6 +39,10 @@ class TimesheetServiceTests {
 		Assertions.assertNotNull(proj)
 		Assertions.assertEquals("MTN", proj.name)
 	}
+	@Test
+	fun saveJob() {
+
+	}
 
 
 }

@@ -15,6 +15,7 @@ $(document).ready(function(){
           //hide company table
 
           $('#message').text("Fetching company invoice...please wait.")
+
           $.get("/billablehour/v1/timesheets/invoices/"+projectName, function(data, status){
             $("#tableCompany #company").text(data.company)
             $("#tableCompany #totalInvoice").text(data.total)
@@ -30,7 +31,7 @@ $(document).ready(function(){
             $('#tableCompany').fadeIn();
             $('#employeeTimesheet').slideUp()
             $('#message').text("");
-            $("#companyDataTable tbody").append(body)
+            $("#companyDataTable tbody").html(body)
           });
 
     })
@@ -82,7 +83,7 @@ $(document).ready(function(){
                     $('#tableCompany').slideUp();
                     $('#employeeTimesheet').fadeIn()
                     $('#message').text("");
-                    $("#employeeTimesheetTable tbody").append(body)
+                    $("#employeeTimesheetTable tbody").html(body)
                 },
                 error: function( jqXhr, textStatus, errorThrown ){
                     $('#message').text("Something went wrong, please try again");

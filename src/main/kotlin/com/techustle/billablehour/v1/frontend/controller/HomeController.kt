@@ -21,7 +21,6 @@ import java.util.*
 
 
 @Controller
-@RequestMapping("/")
 class HomeController {
 
     @Autowired

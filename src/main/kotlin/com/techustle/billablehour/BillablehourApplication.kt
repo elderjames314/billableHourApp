@@ -34,9 +34,6 @@ class MyPostConstructBean {
 	@Autowired
 	lateinit var  timesheetService: TimesheetService
 
-	@Autowired
-	lateinit var utils: Utils
-
 	@PostConstruct
 	fun postContruct() : Unit {
 		println("Application runnning....")
@@ -44,9 +41,11 @@ class MyPostConstructBean {
 		TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 		//timesheet 1
 
+		var utils = Utils()
+
 		var timesheetResource: TimesheetResource = TimesheetResource()
 		timesheetResource.employeeId = 1001
-		timesheetResource.amount = 300.0
+		timesheetResource.amount = 300.0.toBigDecimal()
 		timesheetResource.project = "MTN"
 		timesheetResource.date = utils.formateDate("2019-01-02")
 		timesheetResource.setStarttime("09:00")
@@ -58,7 +57,7 @@ class MyPostConstructBean {
 
 		var timesheetResource2: TimesheetResource = TimesheetResource()
 		timesheetResource2.employeeId = 1001
-		timesheetResource2.amount = 250.0
+		timesheetResource2.amount = 250.0.toBigDecimal()
 		timesheetResource2.project = "Fidelity"
 		timesheetResource2.date = utils.formateDate("2019-06-12")
 		timesheetResource2.setStarttime("09:00")
@@ -71,7 +70,7 @@ class MyPostConstructBean {
 
 		var timesheetResource3: TimesheetResource = TimesheetResource()
 		timesheetResource3.employeeId = 1002
-		timesheetResource3.amount = 350.0
+		timesheetResource3.amount = 350.0.toBigDecimal()
 		timesheetResource3.project = "CBN"
 		timesheetResource3.date = utils.formateDate("2019-04-12")
 		timesheetResource3.setStarttime("09:00")
@@ -83,7 +82,7 @@ class MyPostConstructBean {
 
 		var timesheetResource4: TimesheetResource = TimesheetResource()
 		timesheetResource4.employeeId = 1003
-		timesheetResource4.amount = 450.0
+		timesheetResource4.amount = 450.0.toBigDecimal()
 		timesheetResource4.project = "Guranty Trust Bank"
 		timesheetResource4.date = utils.formateDate("2019-03-12")
 		timesheetResource4.setStarttime("09:00")

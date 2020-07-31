@@ -5,11 +5,18 @@ import com.techustle.billablehour.v1.backend.service.TimesheetService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.AbstractBindingResult
+import org.springframework.validation.BindingResult
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.util.*
+import javax.validation.ConstraintViolationException
+import javax.validation.Valid
+
 
 @RestController
 @CrossOrigin(origins = arrayOf("http://localhost:8080"))
-@RequestMapping("/billablehour/v1/timesheets")
+@RequestMapping("/timesheets")
 class TimesheetController {
 
     @Autowired
@@ -19,28 +26,13 @@ class TimesheetController {
      * @param List of timesheets
      */
     @PostMapping
-    fun addTimesheet(@RequestBody incommingTimesheets: List<IncommingTimesheetResource>) : ResponseEntity<JobUploadResponseResource> {
+    fun addTimesheet(@Valid @RequestBody incommingTimesheets: List<IncommingTimesheetResource>) : ResponseEntity<JobUploadResponseResource> {
         var total:Int = 0
-        var jobUploadResponseResource : JobUploadResponseResource = JobUploadResponseResource()
+        var jobUploadResponseResource  = JobUploadResponseResource()
+
         if(incommingTimesheets.isNotEmpty()) {
-            // that there is at least one timesheet in the collection
             for(timesheet in incommingTimesheets) {
-               total += 1
-                // for every copy of timesheet, all the parameter are expected to be given
-                //if at least one of them is missing, the system will not persist  such time sheet in database
-                //however it will be nice to show the total number of timesheet successfully persisted to tdatabase
-                //also check if rate is numeric
-                if(timesheet.employeeId == null ||
-                        timesheet.rate == null || timesheet.date ==null ||
-                        timesheet.startTime==null || timesheet.endTime==null || timesheet.project==null || !isDouble(timesheet.rate)) {
-                    // do nothing
-                    //this timesheet will not be committed to the database
-                    //because one of the parameters is missing.
-                }else {
-                    //if we got here, we will know all is well and this timesheet has fulfull all righteousness
-                    //let try and persist it to database
-                    saveTimesheet(timesheet)
-                }
+                total += saveTimesheet(timesheet)
             }
         }else{
             //it will be nice if the system send a friendly message to user as per what went wrong
@@ -71,16 +63,9 @@ class TimesheetController {
     @PostMapping("/employee")
     fun generateTimesheetForLawyer(@RequestBody employeeTimesheetRequest: EmployeeTimesheetRequest) :
             ResponseEntity<TimesheetDataResource> {
-        val timesheetList = mutableListOf<IncommingTimesheetResource>()
-        var timesheetDataResource: TimesheetDataResource = TimesheetDataResource()
-        if(employeeTimesheetRequest.employeeId == null || employeeTimesheetRequest.from == null || employeeTimesheetRequest.to==null) {
-            // do nothing
-            //response empty list
-            //give user a friendly message that something went wrong
-            timesheetDataResource.message = "Oops! Something went wrong, please check the fields, ensure all fill accordingly"
-            timesheetDataResource.data = timesheetList
+        var timesheetDataResource = TimesheetDataResource()
+        if(employeeTimesheetRequest.employeeId == null || employeeTimesheetRequest.from == null || employeeTimesheetRequest.to==null)
             return ResponseEntity(timesheetDataResource, HttpStatus.BAD_REQUEST)
-        }
         timesheetDataResource =  timesheetService.getWeeklyTimesheetForEmployee(employeeTimesheetRequest)
         return ResponseEntity(timesheetDataResource, HttpStatus.OK)
     }
@@ -92,15 +77,17 @@ class TimesheetController {
     @GetMapping("/invoices/{company}")
     fun generateCompanyInvoice(@PathVariable company:String) :  ResponseEntity<CompanyInvoiceDataResource> {
         var companyInvoiceData = timesheetService.getCompanyInvoice(company)
+        if(companyInvoiceData.data.isEmpty())
+            return ResponseEntity(companyInvoiceData, HttpStatus.NOT_FOUND)
         return ResponseEntity(companyInvoiceData, HttpStatus.OK)
     }
 
 
-    private fun saveTimesheet(timesheet: IncommingTimesheetResource) : Unit {
+    private fun saveTimesheet(timesheet: IncommingTimesheetResource) : Int {
         var theTimesheet = TimesheetResource();
         theTimesheet.employeeId = timesheet.employeeId
         theTimesheet.project = timesheet.project
-        theTimesheet.amount = timesheet.rate.toDouble()
+        theTimesheet.amount = timesheet.rate.toBigDecimal()
         theTimesheet.setStarttime(timesheet.startTime)
         theTimesheet.setEndtime(timesheet.endTime)
         theTimesheet.date = timesheet.date
@@ -108,8 +95,9 @@ class TimesheetController {
 //                " rate:${theTimesheet.amount}, project: " +
 //                "${theTimesheet.project}, date:" +
 //                " ${theTimesheet.date}, startTime: ${theTimesheet.startTime}, endTime: ${theTimesheet.endTime} ")
-        timesheetService.addNewTimesheets(theTimesheet)
+        return timesheetService.addNewTimesheets(theTimesheet)
     }
 
-    private fun isDouble(str: String?) = str?.toDoubleOrNull()?.let { true } ?: false
+
 }
+
