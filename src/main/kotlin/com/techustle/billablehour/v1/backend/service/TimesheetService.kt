@@ -12,6 +12,7 @@ import com.techustle.billablehour.v1.backend.resource.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.util.*
 import java.util.function.Supplier
 
@@ -60,9 +61,9 @@ class TimesheetService {
         job.endTime = timesheetResource.endTime
         job.hour = timesheetResource.hourWorked
         job.created = timesheetResource.date
-        job = jobRepository.save(job)
+        var job1 = jobRepository.save(job)
 
-        timesheetResource.href.link = "/billablehour/v1/timesheets/${job.Id}"
+        timesheetResource.href.link = "/billablehour/v1/timesheets/${job1.Id}"
 
         return 1;
     }
@@ -103,7 +104,7 @@ class TimesheetService {
             employee1.name = "name${timesheetResource.employeeId}"
             employee1 = employeeRepository.save(employee1)
 
-            var bill = saveBill(timesheetResource, employee1)
+            var bill = saveBill(timesheetResource.amount, employee1)
             //update employee bill
             employee1.bill = bill
             employeeRepository.save(employee1)
@@ -117,10 +118,10 @@ class TimesheetService {
      * @param Employee
      * @return Bill object
     */
-    fun saveBill(timesheetResource: TimesheetResource, employee: Employee) : Bill {
+    fun saveBill(amount: BigDecimal?, employee: Employee) : Bill {
         var bill = Bill()
         bill.grade = "Lawyer"
-        bill.amount = timesheetResource.amount
+        bill.amount = amount
         bill.employee = employee
         bill.remark = "bill created"
         bill.hour = 1
@@ -154,7 +155,7 @@ class TimesheetService {
         return timesheetDataResource
     }
 
-    private fun getTimesheet(jobId: Int) : IncommingTimesheetResource {
+    fun getTimesheet(jobId: Int) : IncommingTimesheetResource {
         var job: Job? = jobRepository.findById(jobId)
                 .orElseThrow(Supplier { InvalidConfigurationPropertyValueException("JobID", jobId, "Timesheet not found with ID: $jobId") })
         var incommingTimesheet: IncommingTimesheetResource = IncommingTimesheetResource()
