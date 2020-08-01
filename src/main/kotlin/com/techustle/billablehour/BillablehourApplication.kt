@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.config.annotation.CorsRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import springfox.documentation.swagger2.annotations.EnableSwagger2
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.annotation.PostConstruct
@@ -91,3 +93,6 @@ class MyPostConstructBean {
 	}
 
 }
+
+
+

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration
 import java.util.*
 
 @Configuration
-class UploadLawyerTimesheetsTests {
+class UploadLawyerTimesheetTests {
 
 	val CONTEXT_PATH: String = "/billablehour/v1"
 
